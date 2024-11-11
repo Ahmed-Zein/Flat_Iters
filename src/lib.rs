@@ -34,7 +34,18 @@ where
     O::Item: IntoIterator,
 {
     type Item = <O::Item as IntoIterator>::Item;
-    fn next(&mut self) -> Option<Self::Item> {}
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if let Some(ref mut inner_iter) = self.inner {
+                if let Some(i) = inner_iter.next() {
+                    return Some(i);
+                }
+                self.inner = None;
+            }
+            let inner_iter = self.outer.next()?.into_iter();
+            self.inner = Some(inner_iter);
+        }
+    }
 }
 
 #[cfg(test)]
